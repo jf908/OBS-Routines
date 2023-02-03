@@ -7,7 +7,7 @@
   export let name: string = '';
   export let disabled: boolean = false;
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher<{ change: boolean }>();
 
   function onChecked(e: Event) {
     dispatch('change', (e.target as HTMLInputElement).checked);
@@ -15,8 +15,8 @@
 </script>
 
 <!-- prettier-ignore -->
-<label class="flex relative" class:notchecked={!checked} class:disabled>
-  <input type="checkbox" class="b-1 b-solid b-border.dark w-1rem h-1rem bg-bg hover:bg-bg.hover rounded !checked:bg-accent" bind:checked {disabled} on:change={onChecked}/>{#if checked}<div class="absolute i-ph-check-bold top-2px left-2px" transition:scale={{ duration: 400, easing: backOut }} />{/if}<span class="ml-1">{name}<slot></slot></span>
+<label class="flex relative  top-3px" class:notchecked={!checked} class:disabled>
+  <input type="checkbox" class="b-1 b-solid b-border.dark w-1rem h-1rem bg-bg hover:bg-bg.hover rounded !checked:bg-accent" bind:checked {disabled} on:change={onChecked}/>{#if checked}<div class="absolute i-ph-check-bold top-2px left-2px" transition:scale|local={{ duration: 400, easing: backOut }} />{/if}<span class="ml-1">{name}<slot></slot></span>
 </label>
 
 <style>

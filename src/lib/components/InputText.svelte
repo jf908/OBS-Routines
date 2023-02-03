@@ -6,12 +6,11 @@
   export let type: 'text' | 'password' = 'text';
   export let id = '';
   export let placeholder: string | undefined = undefined;
+  export let disabled = false;
 
   export let suggestions: readonly string[] = [];
 
   let inputEl: HTMLInputElement;
-
-  let maxLength = 20;
 
   $: filteredOptions = getFiltered(suggestions, value);
 
@@ -23,7 +22,7 @@
     if (opts.length === 0) {
       return [];
     }
-    return opts.filter((x) => searchString(term, x)).slice(0, maxLength);
+    return opts.filter((x) => searchString(term, x));
   }
 
   function selectSuggestion(val: string) {
@@ -39,41 +38,55 @@
   function onBlurInput() {
     focused = false;
   }
+
+  $: suggestionsOpen = suggestions.length && focused;
+
+  export let rightIcon: string | undefined = undefined;
 </script>
 
-{#if type === 'password'}
-  <input
-    {id}
-    class="w-full b-1 b-solid b-border.dark rounded bg-bg hover:bg-bg.hover focus:b-border.focus {$$props.class}"
-    type="password"
-    bind:value
-    {placeholder}
-  />
-{:else}
-  <input
-    {id}
-    class="w-full b-1 b-solid b-border.dark rounded bg-bg hover:bg-bg.hover focus:b-border.focus {$$props.class}"
-    type="text"
-    bind:this={inputEl}
-    on:focus={onFocus}
-    on:blur={onBlurInput}
-    on:input
-    bind:value
-    {placeholder}
-  />
-  {#if suggestions.length && focused}
-    <div class="relative w-full">
-      <Menu
-        class="absolute w-full z-10"
-        content={[
-          filteredOptions.map((x) => ({
-            name: x,
-            callback: () => {
-              selectSuggestion(x);
-            },
-          })),
-        ]}
-      />
-    </div>
+<div class="inline-block relative w-full">
+  {#if type === 'password'}
+    <input
+      {id}
+      class="w-full b-1 b-solid b-border.dark rounded bg-bg hover:bg-bg.hover focus:b-border.focus {$$props.class}"
+      type="password"
+      bind:value
+      {placeholder}
+      {disabled}
+    />
+  {:else}
+    <input
+      {id}
+      class="w-full b-1 b-solid b-border.dark rounded bg-bg hover:bg-bg.hover focus:b-border.focus {$$props.class}"
+      class:rounded-b-0={suggestionsOpen}
+      type="text"
+      bind:this={inputEl}
+      on:focus={onFocus}
+      on:blur={onBlurInput}
+      on:input
+      bind:value
+      {placeholder}
+      {disabled}
+    />
+    {#if rightIcon}
+      <div class="absolute top-0 bottom-0 right-1 pointer-events-none">
+        <div class="w-4 h-4 {rightIcon}" />
+      </div>
+    {/if}
+    {#if suggestionsOpen}
+      <div class="relative w-full">
+        <Menu
+          class="absolute w-full z-10 max-h-52"
+          content={[
+            filteredOptions.map((x) => ({
+              name: x,
+              callback: () => {
+                selectSuggestion(x);
+              },
+            })),
+          ]}
+        />
+      </div>
+    {/if}
   {/if}
-{/if}
+</div>

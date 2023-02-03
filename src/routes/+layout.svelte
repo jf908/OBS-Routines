@@ -1,6 +1,6 @@
 <script>
   import { loadRoutines } from '$lib/routines';
-  import { loadLogin } from '$lib/store';
+  import { loadLogin, fontSize } from '$lib/store';
   import { onMount } from 'svelte';
   import 'uno.css';
   import '../app.css';
@@ -11,6 +11,6 @@
   });
 </script>
 
-<main>
+<main style="font-size: {$fontSize}px">
   <slot />
 </main>

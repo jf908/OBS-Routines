@@ -1561,3 +1561,29 @@ export type ObsJsonTypes =
 type ValuesOfUnion<T> = T extends T ? T[keyof T] : never;
 
 export type ObsJsonTypesOptionals = Extract<ObsJsonTypes, `${string}?`>;
+
+export function getDefaultJsonValue(
+  e: ObsJsonTypes | Record<string, ObsJsonTypes>
+): any {
+  switch (e) {
+    case 'string':
+      return '';
+    case 'number':
+      return 0;
+    case 'boolean':
+      return false;
+    case 'never':
+      return undefined;
+    case 'value':
+    case 'object':
+      return {};
+    default: {
+      if (typeof e === 'object') {
+        return Object.fromEntries(
+          Object.entries(e).map(([k, v]) => [k, getDefaultJsonValue(v)])
+        );
+      }
+      return null;
+    }
+  }
+}

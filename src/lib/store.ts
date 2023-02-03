@@ -13,9 +13,18 @@ export const login = writable<LoginDetails>({
   password: '',
 });
 
-login.subscribe((value) => {
+export const fontSize = writable(12);
+
+export const settings =
+  writable <
+  login.subscribe((value) => {
+    if (!loaded) return;
+    localStorage.setItem('login', JSON.stringify(value));
+  });
+
+fontSize.subscribe((value) => {
   if (!loaded) return;
-  localStorage.setItem('login', JSON.stringify(value));
+  localStorage.setItem('fontSize', value.toString());
 });
 
 export function loadLogin() {
@@ -24,7 +33,21 @@ export function loadLogin() {
     if (contents) {
       login.set(JSON.parse(contents));
     }
-  } finally {
-    loaded = true;
+  } catch (err) {
+    console.error(err);
   }
+
+  try {
+    const contents = localStorage.getItem('fontSize');
+    if (contents) {
+      let num = parseInt(contents);
+      // Clamp
+      num = num > 128 || num < 8 ? 12 : num;
+      fontSize.set(num);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+
+  loaded = true;
 }

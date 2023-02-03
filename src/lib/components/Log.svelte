@@ -11,7 +11,7 @@
   <svelte:fragment slot="header">Log</svelte:fragment>
   <div
     class="p-3 max-h-50vh flex flex-col gap-2"
-    transition:slide={{ duration: 100 }}
+    transition:slide|local={{ duration: 100 }}
   >
     <div>
       <Button on:click={obsLog.reset}>Clear</Button>
