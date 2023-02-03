@@ -19,6 +19,10 @@
   import { login } from '$lib/store';
   import { derived, writable, type Readable } from 'svelte/store';
   import { importRoutine, routines } from '$lib/routines';
+  import Menu from '$lib/components/Menu.svelte';
+  import MenuButton from '$lib/components/MenuButton.svelte';
+  import Settings from '$lib/components/Settings.svelte';
+  import { capitalize } from '$lib/util';
 
   let connected = false;
 
@@ -30,7 +34,7 @@
     cancel() {},
     restart() {},
   };
-  let currentRoutine: Readable<Routine | null> = writable(null);
+  let currentRoutine: Readable<(Routine & WithId) | null> = writable(null);
 
   async function connect() {
     obs = new OBSWebSocket();
@@ -72,17 +76,19 @@
   }
 
   function playRoutine(id: string, actionIndex?: number) {
+    let status = $currentExecutor.status;
+
     currentExecutor.cancel();
+
+    // Toggle off if already running
+    if (status === 'running' && $currentRoutine?.id === id) return;
+
     let r = derived(routines, (rs) => rs.find((r) => r.id === id)!);
     createRoutineExecutor(executor, r, currentExecutor, actionIndex);
     currentRoutine = r;
   }
 
-  function capitalize(str: string) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
-  function removeRoutine(routine: RoutineWithIds) {
+  function removeRoutine(routine: RoutineWithIds & WithId) {
     if ($currentRoutine === routine && $currentExecutor.status === 'running')
       return;
     $routines = $routines.filter((r) => r !== routine);
@@ -105,12 +111,30 @@
   />
 {:else}
   <div
-    class="fixed top-0 w-full bg-bg.muted p-3 flex flex-col"
+    class="fixed z-1 top-0 w-full bg-bg.muted p-3 flex flex-col"
     bind:clientHeight={navHeight}
   >
     <div class="flex gap-1">
-      <Button on:click={addRoutine}>+ Routine</Button>
-      <Button on:click={importR}>Import Routine</Button>
+      <div class="flex">
+        <Button class="!rounded-r-0" on:click={addRoutine}>New Routine</Button>
+        <MenuButton class="!rounded-l-0 ml--1px flex items-center h-full">
+          <div class="i-ph-caret-down" />
+          <Menu
+            class="absolute z-10 w-30 py-1"
+            slot="menu"
+            content={[
+              [
+                {
+                  name: 'Import...',
+                  callback: () => {
+                    importR();
+                  },
+                },
+              ],
+            ]}
+          />
+        </MenuButton>
+      </div>
       <Button class="ml-auto" on:click={disconnect}>Disconnect</Button>
     </div>
     <hr class="w-full border-fg.subtle/20" />
@@ -148,20 +172,14 @@
       on:run={() => playRoutine(routine.id)}
       on:runAction={({ detail }) => playRoutine(routine.id, detail)}
       on:delete={() => removeRoutine(routine)}
-      statuses={$currentRoutine === routine
-        ? $currentExecutor?.actions.map((a) => a.status)
-        : null}
+      states={$currentRoutine === routine ? $currentExecutor?.actions : null}
+      status={$currentRoutine === routine ? $currentExecutor.status : null}
     />
   {/each}
   <div class="h-6" />
-
-  <Log class="fixed z-1 bottom-0 w-full" />
 {/if}
 
-<!-- <div class="rounded bg-bg.muted p-3 m-3">
-  <span>ASODJH</span>
-  <div>
-    <InputText bind:value suggestions={obsActions} />
-  </div>
-  {JSON.stringify($obsSources)}
-</div> -->
+<div class="fixed z-1 bottom-0 w-full">
+  <Log />
+  <Settings />
+</div>

@@ -3,20 +3,13 @@
 </script>
 
 <script lang="ts">
-  import type { Action, ActionStatus, WithId } from '$lib/actions';
-  import {
-    obsActions,
-    obsEventTypes,
-    obsTypes,
-    type ObsJsonTypes,
-  } from '$lib/obs';
+  import type { Action, ActionState, WithId } from '$lib/actions';
+  import { getDefaultJsonValue, obsActions, obsTypes } from '$lib/obs';
   import { formatMs } from '$lib/time';
-  import type { OBSEventTypes } from 'obs-websocket-js';
   import { createEventDispatcher } from 'svelte';
   import { writable } from 'svelte/store';
   import { slide } from 'svelte/transition';
   import Button from './Button.svelte';
-  import Checkbox from './Checkbox.svelte';
   import EventInput from './EventInput.svelte';
   import FormElement from './FormElement.svelte';
   import GenericInput from './GenericInput.svelte';
@@ -26,10 +19,17 @@
   import NumberInput from './NumberInput.svelte';
   import Panel from './Panel.svelte';
   import SceneInput from './SceneInput.svelte';
+  import Tooltip from './Tooltip.svelte';
+  import { capitalize } from '$lib/util';
+  import { createTooltip } from '$lib/tooltip';
+  import ActionName from './ActionName.svelte';
+
+  const [tooltipRef, tooltipContent] = createTooltip();
+  let showTooltip: boolean = false;
 
   export let index: number;
   export let action: Action & WithId;
-  export let status: ActionStatus;
+  export let state: ActionState;
 
   let obsAction: string = action.type === 'obs' ? action.call : '';
 
@@ -42,21 +42,7 @@
         call: value,
         args: generateDefaultArgs(value),
       };
-    }
-  }
-
-  function defaultValue(e: ObsJsonTypes): any {
-    switch (e) {
-      case 'string':
-        return '';
-      case 'number':
-        return 0;
-      case 'boolean':
-        return false;
-      case 'never':
-        return undefined;
-      default:
-        return null;
+      console.log(action);
     }
   }
 
@@ -65,19 +51,8 @@
     if (e in obsTypes) {
       const types = obsTypes[e as keyof typeof obsTypes];
       return Object.fromEntries(
-        Object.entries(types).map(([k, v]) => [k, defaultValue(v)])
+        Object.entries(types).map(([k, v]) => [k, getDefaultJsonValue(v)])
       );
-    }
-  }
-
-  function getActionName(action: Action) {
-    switch (action.type) {
-      case 'obs':
-        return action.call || 'OBS Action';
-      case 'wait':
-        return `Wait for ${formatMs(action.ms)}`;
-      case 'event':
-        return `Wait for ${action.event}`;
     }
   }
 
@@ -96,18 +71,21 @@
   <svelte:fragment slot="header">
     <div
       class="mr-1"
-      class:i-ph-hourglass={status === 'waiting'}
-      class:i-ph-spinner={status === 'running'}
-      class:animate-spin={status === 'running'}
-      class:i-ph-pause={status === 'paused'}
-      class:i-ph-prohibit={status === 'cancelled'}
-      class:i-ph-warning-octagon={status === 'error'}
-      class:i-ph-check={status === 'success'}
+      class:i-ph-hourglass={state.status === 'waiting'}
+      class:i-ph-spinner={state.status === 'running'}
+      class:animate-spin={state.status === 'running'}
+      class:i-ph-pause={state.status === 'paused'}
+      class:i-ph-prohibit={state.status === 'cancelled'}
+      class:i-ph-warning-octagon={state.status === 'error'}
+      class:i-ph-check={state.status === 'success'}
+      on:mouseenter={() => (showTooltip = true)}
+      on:mouseleave={() => (showTooltip = false)}
+      use:tooltipRef
     />
     {index + 1}:
-    {getActionName(action)}
+    <ActionName {action} {state} />
     <div class="ml-auto" />
-    <MenuButton class="!b-none">
+    <MenuButton class="!b-none flex items-center mr-1">
       <div class="i-ph-dots-three-bold" />
       <Menu
         class="absolute right-0 z-10 w-30 py-1"
@@ -148,8 +126,10 @@
       on:mouseup={(e) => dispatch('endDrag')}
     />
   </svelte:fragment>
-  <div class="p-3 flex flex-col gap-1">
-    <!-- transition:slide={{ duration: 100 }} -->
+  <div
+    class="p-3 flex flex-col gap-1"
+    transition:slide|local={{ duration: 100 }}
+  >
     {#if action.type === 'obs'}
       <FormElement id="action" label="Action">
         <InputText bind:value={obsAction} suggestions={obsActions} />
@@ -157,26 +137,23 @@
       {#if action.call in obsTypes && typeof obsTypes[action.call] === 'object'}
         {#each Object.entries(obsTypes[action.call]) as [k, v]}
           <FormElement id={k} label={v === 'boolean' ? '' : k}>
-            {#if typeof v === 'string' && ['string', 'number', 'boolean'].includes(v)}
-              {#if k === 'sceneName'}
-                <SceneInput bind:value={action.args[k]} />
-                <!-- {:else if k === 'sceneItemId' && 'sceneName' in action.args}
+            {#if k === 'sceneName'}
+              <SceneInput bind:value={action.args[k]} />
+              <!-- {:else if k === 'sceneItemId' && 'sceneName' in action.args}
                 <SceneItemInput
                   bind:value={action.args[k]}
                   scene={action.args.sceneName}
                 /> -->
-              {:else}
-                <GenericInput
-                  type={v}
-                  name={v === 'boolean' ? k : undefined}
-                  bind:value={action.args[k]}
-                />
-              {/if}
+            {:else}
+              <GenericInput
+                type={v}
+                name={v === 'boolean' ? k : undefined}
+                bind:value={action.args[k]}
+              />
             {/if}
           </FormElement>
         {/each}
       {/if}
-      <!-- <SceneInput value={''} /> -->
       <FormElement id="test">
         <Button on:click={() => dispatch('test')}>Test</Button>
       </FormElement>
@@ -197,3 +174,5 @@
     {/if}
   </div>
 </Panel>
+
+<Tooltip {tooltipContent} {showTooltip}>{capitalize(state.status)}</Tooltip>

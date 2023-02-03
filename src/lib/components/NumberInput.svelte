@@ -28,6 +28,7 @@
   let mouseMoved = false;
 
   function changeValue(val: number | string) {
+    if (disabled) return;
     if (typeof val === 'string') {
       val = parseFloat(val);
     }
@@ -90,6 +91,7 @@
   }
 
   async function onFocus() {
+    if (disabled) return;
     focused = true;
     await tick();
     if (inputEl) {
@@ -125,10 +127,10 @@
 </script>
 
 <div
-  class="numeric py-1px px-2px bg-bg b-1 b-solid b-border.dark rounded hover:bg-bg.hover"
+  class="numeric w-full py-1px px-2px bg-bg b-1 b-solid b-border.dark rounded hover:bg-bg.hover"
   class:labelled={label !== ''}
   class:slider
-  class:disabled
+  class:opacity-50={disabled}
   class:focus={focused}
   bind:clientWidth={sliderWidth}
   bind:this={el}
@@ -156,6 +158,7 @@
     {/if}
     <div
       class="value bg-bg hover:bg-bg.hover"
+      class:cursor-ew-resize={!disabled}
       on:mousedown={onMouseDown}
       on:mouseup={onMouseUp}
     >
@@ -206,7 +209,6 @@
   .value {
     position: relative;
     z-index: 1;
-    cursor: ew-resize;
   }
 
   .slider .value {

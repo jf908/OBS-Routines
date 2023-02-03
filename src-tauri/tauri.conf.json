@@ -1,13 +1,13 @@
 {
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
     "devPath": "http://localhost:1420",
     "distDir": "../build",
     "withGlobalTauri": false
   },
   "package": {
-    "productName": "obs-routines",
+    "productName": "OBS Routines",
     "version": "0.0.0"
   },
   "tauri": {

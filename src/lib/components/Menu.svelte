@@ -67,21 +67,13 @@
     selectedEl.classList.add('selected');
   }
 
-  function onWheel(e: WheelEvent) {
-    if (e.deltaY < 0) {
-      selectUp();
-    } else if (e.deltaY > 0) {
-      selectDown();
-    }
-  }
-
   function onMouseUp(item: MenuItemObject) {
     item.callback?.(item.name);
   }
 </script>
 
 <div
-  class="bg-bg b-1 b-solid b-border.dark rounded-b overflow-hidden {$$props.class}"
+  class="bg-bg b-1 b-solid b-border.dark rounded-b overflow-auto {$$props.class}"
   {style}
   bind:this={parent}
 >
@@ -99,4 +91,4 @@
   <slot />
 </div>
 
-<svelte:window on:keydown={onKeydown} on:wheel={onWheel} />
+<svelte:window on:keydown={onKeydown} />

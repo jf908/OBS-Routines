@@ -5,4 +5,8 @@
   export let value: string;
 </script>
 
-<InputText bind:value suggestions={$obsScenes} />
+<InputText
+  bind:value
+  suggestions={$obsScenes}
+  rightIcon={$obsScenes.includes(value) ? undefined : 'i-ph-warning'}
+/>

@@ -3,9 +3,9 @@
     createAction,
     duplicateAction,
     type Action,
+    type ActionState,
     type ActionStatus,
     type createActionExecutor,
-    type Routine,
     type RoutineWithIds,
     type WithId,
   } from '$lib/actions';
@@ -18,12 +18,18 @@
   import MenuButton from './MenuButton.svelte';
   import Menu from './Menu.svelte';
   import { exportRoutine } from '$lib/routines';
+  import Tooltip from './Tooltip.svelte';
+  import { createTooltip } from '$lib/tooltip';
 
   export let routine: RoutineWithIds & WithId;
 
   export let executor: ReturnType<typeof createActionExecutor>;
 
-  export let statuses: ActionStatus[] | null = null;
+  export let states: ActionState[] | null = null;
+  export let status: ActionStatus | null = null;
+
+  const [tooltipRef, tooltipContent] = createTooltip();
+  let showTooltip: boolean = false;
 
   const dispatch = createEventDispatcher();
 
@@ -77,11 +83,8 @@
   }
 
   const insert = <T>(arr: T[], index: number, newItem: T) => [
-    // part of the array before the specified index
     ...arr.slice(0, index),
-    // inserted item
     newItem,
-    // part of the array after the specified index
     ...arr.slice(index),
   ];
 
@@ -92,10 +95,21 @@
 
 <div class="bg-bg.muted p-3 m-3 rounded">
   <div class="flex gap-1 mb-2">
-    <Button class="flex items-center" on:click={() => dispatch('run')}>
-      <span class="i-ph-play-fill" />
-    </Button>
+    <div
+      class="flex"
+      use:tooltipRef
+      on:mouseenter={() => (showTooltip = true)}
+      on:mouseleave={() => (showTooltip = false)}
+    >
+      <Button class="flex items-center" on:click={() => dispatch('run')}>
+        <span
+          class:i-ph-play-fill={status !== 'running'}
+          class:i-ph-stop-fill={status === 'running'}
+        />
+      </Button>
+    </div>
     <InputText bind:value={routine.name} placeholder="Routine Name" />
+
     <MenuButton>
       <div class="i-ph-dots-three-bold" />
       <Menu
@@ -136,7 +150,7 @@
           index={i}
           on:remove={() => onRemove(action)}
           on:test={() => runAction(action)}
-          status={statuses?.[i] ?? 'waiting'}
+          state={states?.[i] ?? { status: 'waiting' }}
           on:startDrag={() => (dragDisabled = false)}
           on:endDrag={() => (dragDisabled = true)}
           on:run={() => dispatch('runAction', i)}
@@ -145,9 +159,14 @@
       </div>
     {/each}
   </section>
-  <div>
+  <hr class="w-full border-fg.subtle/20" />
+  <div class="flex flex-wrap gap-1">
     <Button on:click={() => addAction('obs')}>+ OBS Action</Button>
     <Button on:click={() => addAction('wait')}>+ Wait time</Button>
     <Button on:click={() => addAction('event')}>+ Wait for event</Button>
   </div>
 </div>
+
+<Tooltip {showTooltip} {tooltipContent}>
+  {status === 'running' ? 'Stop' : 'Run'}
+</Tooltip>

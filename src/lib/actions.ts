@@ -128,16 +128,21 @@ export type ActionStatus =
 
 export type RoutineExecutor = Writable<ExecutorState> &
   Cancellable & { restart: () => void };
-type ExecutorState = {
+export type ExecutorState = {
   index: number;
   status: ActionStatus;
-  actions: { status: ActionStatus }[];
+  actions: ActionState[];
 };
+export type ActionState = {
+  status: ActionStatus;
+  started?: Date;
+};
+
 export function createRoutineExecutor(
   executor: ActionExecutor,
   routineReadable: Readable<Routine>,
   state: RoutineExecutor,
-  startingIndex?: number
+  startingIndex: number = 0
 ) {
   let promise: Promise<void> | CancellablePromise<void> | undefined;
 
@@ -166,7 +171,7 @@ export function createRoutineExecutor(
       ...state,
       index: indexToRun,
       status: 'running',
-      actions: [...state.actions, { status: 'running' }],
+      actions: [...state.actions, { status: 'running', started: new Date() }],
     }));
     promise = executor.execute(routine.actions[indexToRun]);
 
@@ -195,7 +200,7 @@ export function createRoutineExecutor(
       });
   }
 
-  init(startingIndex ?? 0);
+  init(startingIndex);
 
   state.cancel = () => {
     if (get(state).status !== 'running') return;
