@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Action, ActionState } from '$lib/actions';
-  import { formatMs } from '$lib/time';
+  import { formatMs, formatTime, getTimeUntil } from '$lib/time';
   import { onMount } from 'svelte';
 
   export let action: Action;
@@ -14,16 +14,29 @@
 
   function updateTimer(state: ActionState) {
     if (!mounted) return;
-    if (action.type === 'wait' && state.started && state.status === 'running') {
+    if (
+      state.started &&
+      state.status === 'running' &&
+      (action.type === 'wait' || action.type === 'wait-until')
+    ) {
       if (interval === undefined) {
         interval = setInterval(() => {
-          if (state.started && action.type === 'wait') {
-            wait =
-              action.ms -
-              Math.round(
-                (new Date().getTime() - state.started.getTime()) / 1000
-              ) *
-                1000;
+          if (state.started) {
+            if (action.type === 'wait') {
+              wait =
+                action.ms -
+                Math.round(
+                  (new Date().getTime() - state.started.getTime()) / 1000
+                ) *
+                  1000;
+            } else if (action.type === 'wait-until') {
+              wait =
+                getTimeUntil(action.time, state.started) -
+                Math.round(
+                  (new Date().getTime() - state.started.getTime()) / 1000
+                ) *
+                  1000;
+            }
           }
         }, 1000);
       }
@@ -48,6 +61,9 @@
   {action.call || 'OBS Action'}
 {:else if action.type === 'wait'}
   Wait for {wait === -1 ? formatMs(action.ms) : formatMs(wait)}
+{:else if action.type === 'wait-until'}
+  Wait until {formatTime(action.time)}
+  {wait === -1 ? '' : `(in ${formatMs(wait)})`}
 {:else}
   Wait for {action.event}
 {/if}

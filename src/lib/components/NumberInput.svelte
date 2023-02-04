@@ -127,7 +127,7 @@
 </script>
 
 <div
-  class="numeric w-full py-1px px-2px bg-bg b-1 b-solid b-border.dark rounded hover:bg-bg.hover"
+  class="numeric w-full py-1px px-2px bg-bg b-1 b-solid b-border.dark rounded hover:bg-bg.hover {$$props.class}"
   class:labelled={label !== ''}
   class:slider
   class:opacity-50={disabled}

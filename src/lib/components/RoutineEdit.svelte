@@ -162,8 +162,12 @@
   <hr class="w-full border-fg.subtle/20" />
   <div class="flex flex-wrap gap-1">
     <Button on:click={() => addAction('obs')}>+ OBS Action</Button>
-    <Button on:click={() => addAction('wait')}>+ Wait time</Button>
     <Button on:click={() => addAction('event')}>+ Wait for event</Button>
+  </div>
+  <hr class="w-full border-fg.subtle/20" />
+  <div class="flex flex-wrap gap-1">
+    <Button on:click={() => addAction('wait')}>+ Wait duration</Button>
+    <Button on:click={() => addAction('wait-until')}>+ Wait until time</Button>
   </div>
 </div>
 

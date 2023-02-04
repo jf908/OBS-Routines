@@ -5,7 +5,7 @@
 <script lang="ts">
   import type { Action, ActionState, WithId } from '$lib/actions';
   import { getDefaultJsonValue, obsActions, obsTypes } from '$lib/obs';
-  import { formatMs } from '$lib/time';
+  import { formatMs, formatTime } from '$lib/time';
   import { createEventDispatcher } from 'svelte';
   import { writable } from 'svelte/store';
   import { slide } from 'svelte/transition';
@@ -23,6 +23,7 @@
   import { capitalize } from '$lib/util';
   import { createTooltip } from '$lib/tooltip';
   import ActionName from './ActionName.svelte';
+  import TimeInput from './TimeInput.svelte';
 
   const [tooltipRef, tooltipContent] = createTooltip();
   let showTooltip: boolean = false;
@@ -166,6 +167,11 @@
           step={1000}
           min={0}
         />
+      </FormElement>
+    {:else if action.type === 'wait-until'}
+      <FormElement id="wait-time" label="Wait until">
+        <TimeInput bind:value={action.time} />
+        <div>{formatTime(action.time, true)}</div>
       </FormElement>
     {:else}
       <FormElement id="wait-event" label="Wait for">
