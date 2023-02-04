@@ -43,7 +43,6 @@
         call: value,
         args: generateDefaultArgs(value),
       };
-      console.log(action);
     }
   }
 
