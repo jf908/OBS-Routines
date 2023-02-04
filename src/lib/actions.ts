@@ -2,6 +2,7 @@ import type { OBSEventTypes, OBSRequestTypes } from 'obs-websocket-js';
 import type OBSWebSocket from 'obs-websocket-js';
 import { get, writable, type Readable, type Writable } from 'svelte/store';
 import { v4 as uuid } from 'uuid';
+import { getTimeUntil } from './time';
 
 export type WithId = {
   id: string;
@@ -16,7 +17,7 @@ export type RoutineWithIds = Omit<Routine, 'actions'> & {
   actions: (Action & WithId)[];
 };
 
-export type Action = OBSAction | Wait | WaitForEvent;
+export type Action = OBSAction | Wait | WaitForEvent | WaitUntil;
 
 export type OBSAction = {
   type: 'obs';
@@ -32,6 +33,14 @@ export type Wait = {
 export type WaitForEvent = {
   type: 'event';
   event: string;
+};
+
+export type WaitUntil = {
+  type: 'wait-until';
+  /**
+   * time in milliseconds from 00:00
+   */
+  time: number;
 };
 
 export function createRoutine(): RoutineWithIds & WithId {
@@ -69,6 +78,14 @@ export function createAction(type: Action['type']): Action & WithId {
         id: uuid(),
         type,
         ms: 1000,
+      };
+    case 'wait-until':
+      const d = new Date();
+      return {
+        id: uuid(),
+        type,
+        time:
+          ((d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds()) * 1000,
       };
   }
 }
@@ -109,6 +126,11 @@ function delay(ms: number): CancellablePromise<void> {
   };
 
   return p as CancellablePromise<void>;
+}
+
+function waitUntil(time: number) {
+  const ms = getTimeUntil(time, new Date());
+  return delay(ms);
 }
 
 export type ActionStatus =
@@ -244,6 +266,8 @@ export function createActionExecutor(
         case 'wait': {
           return delay(action.ms);
         }
+        case 'wait-until':
+          return waitUntil(action.time);
         case 'event': {
           let listener: (() => void) | undefined;
           let rejectCb: (err: Error) => void;
