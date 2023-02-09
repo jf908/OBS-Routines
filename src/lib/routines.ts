@@ -21,7 +21,7 @@ routines.subscribe(async (value) => {
     await createDir('', { dir: BaseDirectory.AppData });
   }
   writeTextFile(fileName, JSON.stringify(removeIds(value)), {
-    dir: BaseDirectory.AppConfig,
+    dir: BaseDirectory.AppData,
   });
 });
 
