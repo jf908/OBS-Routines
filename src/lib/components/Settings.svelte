@@ -8,7 +8,7 @@
   let open = false;
 </script>
 
-<Panel class="bg-bg.muted {$$props.class}">
+<Panel class="bg-bg.muted {$$props.class ?? ''}">
   <svelte:fragment slot="header">Settings</svelte:fragment>
   <div
     class="p-3 flex flex-col gap-2"

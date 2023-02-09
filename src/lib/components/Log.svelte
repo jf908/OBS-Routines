@@ -7,10 +7,10 @@
   let open = false;
 </script>
 
-<Panel class="bg-bg.muted {$$props.class}">
+<Panel class="bg-bg.muted {$$props.class ?? ''}">
   <svelte:fragment slot="header">Log</svelte:fragment>
   <div
-    class="p-3 max-h-50vh flex flex-col gap-2"
+    class="p-3 flex flex-col gap-2 max-h-50vh"
     transition:slide|local={{ duration: 100 }}
   >
     <div>
