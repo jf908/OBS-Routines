@@ -253,13 +253,16 @@ export function createActionExecutor(
           return obs
             .call(action.call as keyof OBSRequestTypes, action.args)
             .then((results) => {
-              logger(
-                `[${new Date().toISOString()}] ${JSON.stringify(
-                  results,
-                  undefined,
-                  2
-                )}`
-              );
+              if (results === undefined) {
+                logger(`[${new Date().toISOString()}] ${action.call}`);
+              } else {
+                logger(
+                  `[${new Date().toISOString()}] ${
+                    action.call
+                  }=${JSON.stringify(results, undefined, 2)}`
+                );
+              }
+
               // return results;
             });
         }
@@ -269,18 +272,26 @@ export function createActionExecutor(
         case 'wait-until':
           return waitUntil(action.time);
         case 'event': {
-          let listener: (() => void) | undefined;
+          type ObsEventArgs = Parameters<Parameters<typeof obs['once']>[1]>;
+          let listener: ((...args: ObsEventArgs) => void) | undefined;
           let rejectCb: (err: Error) => void;
 
-          const p: Partial<CancellablePromise<void>> = new Promise(
-            (res, rej) => {
+          const p: Partial<CancellablePromise<void>> =
+            new Promise<ObsEventArgs>((res, rej) => {
               rejectCb = rej;
-              listener = () => {
-                res();
+              listener = (...args) => {
+                res(args);
               };
               obs.once(action.event as keyof OBSEventTypes, listener);
-            }
-          );
+            }).then((args: ObsEventArgs) => {
+              logger(
+                `[${new Date().toISOString()}] ${action.event}=${JSON.stringify(
+                  args,
+                  undefined,
+                  2
+                )}`
+              );
+            });
 
           p.cancel = () => {
             if (listener) {
