@@ -60,11 +60,18 @@
 
   $: open =
     action.id === 'id:dnd-shadow-placeholder-0000' ? false : $isOpen[action.id];
+
+  const borderColors: Record<Action['type'], string> = {
+    event: 'border-orange-500',
+    obs: 'border-blue-500',
+    wait: 'border-yellow-500',
+    'wait-until': 'border-yellow-500',
+  };
 </script>
 
 <Panel
   class="bg-bg.muted rounded b-1 b-solid b-border.default {$$props.class}"
-  headerClass="rounded"
+  headerClass="rounded border-l-3 border-l-solid {borderColors[action.type]}"
   {open}
   on:toggle={({ detail }) => ($isOpen[action.id] = detail)}
 >
