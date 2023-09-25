@@ -47,6 +47,18 @@
     }
   }
 
+  function prettifyArgs(action: string, args: any) {
+    switch (action) {
+      case 'SetSceneName':
+        return `from ${args.sceneName} to ${args.newSceneName}`;
+      case 'SetCurrentProgramScene':
+        return `to ${args.sceneName}`;
+      case 'SetCurrentProfile':
+        return `to ${args.profileName}`;
+    }
+    return '';
+  }
+
   onMount(() => {
     mounted = true;
     updateTimer(state);
@@ -59,6 +71,7 @@
 
 {#if action.type === 'obs'}
   {action.call || 'OBS Action'}
+  {action.args ? prettifyArgs(action.call, action.args) : ''}
 {:else if action.type === 'wait'}
   Wait for {wait === -1 ? formatMs(action.ms) : formatMs(wait)}
 {:else if action.type === 'wait-until'}
